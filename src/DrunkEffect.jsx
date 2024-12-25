@@ -1,0 +1,33 @@
+import { Effect, BlendFunction } from "postprocessing";
+import { Uniform } from "three";
+
+const fragmentShader = /* glsl */ `
+  uniform float uFrequency;
+  uniform float uAmplitude;
+  uniform float uOffset;
+
+    void mainUv(inout vec2 uv) {
+      uv.y += sin(uv.x * uFrequency + uOffset) * uAmplitude;
+    }
+
+    void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+      outputColor = vec4(0.8, 1.0, 0.5, inputColor.a);
+    }
+`;
+
+export default class DrunkEffect extends Effect {
+  constructor({ frequency, amplitude, blendFunction = BlendFunction.DARKEN }) {
+    super("DrunkEffect", fragmentShader, {
+      blendFunction,
+      uniforms: new Map([
+        ["uFrequency", new Uniform(frequency)],
+        ["uAmplitude", new Uniform(amplitude)],
+        ["uOffset", new Uniform(0)],
+      ]),
+    });
+  }
+
+  update(renderer, inputBuffer, delta) {
+    this.uniforms.get("uOffset").value += delta * 0.4;
+  }
+}
